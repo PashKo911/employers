@@ -38,6 +38,7 @@ class App extends Component {
 				},
 			],
 			term: '',
+			filter: 'all',
 		}
 	}
 
@@ -92,23 +93,51 @@ class App extends Component {
 		})
 	}
 
-	getVisibleData = (attr) => {}
+	filterPost = (items, filter) => {
+		switch (filter) {
+			case 'rise':
+				return items.filter((item) => item.rise)
+			case 'moreThen1000':
+				return items.filter((item) => item.salary > 1000)
+			default:
+				return items
+		}
+	}
+
+	onFilterSelect = (filter) => {
+		this.setState({ filter })
+	}
+
+	onSalaryChange = (id, salary) => {
+		this.setState(({ data }) => ({
+			data: data.map((item) => {
+				if (item.id === id) {
+					return { ...item, salary: salary }
+				} else return item
+			}),
+		}))
+	}
 
 	render() {
-		const { data, term } = this.state
+		const { data, term, filter } = this.state
 		const employees = this.state.data.length
 		const increasedCount = this.state.data.filter((elem) => elem.increase).length
-		const visibleData = this.searchEmp(data, term)
+		const visibleData = this.filterPost(this.searchEmp(data, term), filter)
 
 		return (
 			<div className="app">
 				<AppInfo employees={employees} increasedCount={increasedCount} />
 				<div className="search-panel">
 					<SearchPanel onUpdateSearch={this.onUpdateSearch} />
-					<AppFilter onFilter={this.getVisibleData} />
+					<AppFilter filter={filter} onFilterSelect={this.onFilterSelect} />
 				</div>
 
-				<EmpoyersList data={visibleData} onDelete={this.deleteItem} onToggleProp={this.onToggleProp} />
+				<EmpoyersList
+					data={visibleData}
+					onDelete={this.deleteItem}
+					onToggleProp={this.onToggleProp}
+					onSalaryChange={this.onSalaryChange}
+				/>
 				<EmployersAddForm onAdd={this.addItem} />
 			</div>
 		)
